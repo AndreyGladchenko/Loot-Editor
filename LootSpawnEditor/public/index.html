@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SCUM Loot Spawn Editor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=2.4.0">
+    <link rel="icon" type="image/x-icon" href="icon.ico">
+</head>
+<body>
+    <!-- Real-time Toast Notifications -->
+    <div id="toast-container"></div>
+
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-container">
+                    <img src="scum_text.webp" alt="SCUM" class="logo-tag-img">
+                    <span class="logo-title">LOOT SPAWN</span>
+                    <span class="logo-sub">EDITOR</span>
+                    <span class="logo-version" id="logo-version-text">ver. ...</span>
+                </div>
+                <div class="lang-switcher-divider"></div>
+                <div class="lang-switcher-container">
+                    <div class="lang-switcher">
+                        <button class="lang-btn active" id="btn-lang-ru" onclick="changeLanguage('ru')">
+                            <svg class="lang-flag-svg" viewBox="0 0 9 6">
+                                <rect width="9" height="6" fill="#fff"/>
+                                <rect width="9" height="4" y="2" fill="#0039a6"/>
+                                <rect width="9" height="2" y="4" fill="#d52b1e"/>
+                            </svg>
+                            RU
+                        </button>
+                        <button class="lang-btn" id="btn-lang-en" onclick="changeLanguage('en')">
+                            <svg class="lang-flag-svg" viewBox="0 0 60 30">
+                                <rect width="60" height="30" fill="#012169"/>
+                                <path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6"/>
+                                <path d="M0,0 L60,30 M60,0 L0,30" stroke="#C8102E" stroke-width="4"/>
+                                <path d="M30,0 V30 M0,15 H60" stroke="#fff" stroke-width="10"/>
+                                <path d="M30,0 V30 M0,15 H60" stroke="#C8102E" stroke-width="6"/>
+                            </svg>
+                            EN
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="sidebar-loot-folder-card">
+                <div class="folder-label" data-i18n="sidebar_loot_folder">Рабочая папка Loot:</div>
+                <div id="sidebar-loot-path" class="folder-path text-muted" title="По умолчанию" data-i18n-title="default_path">❌ По умолчанию</div>
+                <div style="display: flex; gap: 8px; margin-top: 8px;">
+                    <button class="btn btn-secondary btn-xs" onclick="openConfigureLootDirModal()" style="flex-grow: 1;" data-i18n="btn_specify_path">Указать путь</button>
+                    <button class="btn btn-accent btn-xs" onclick="refreshLootData()" title="Повторно прочитать и перезагрузить файлы" data-i18n-title="tooltip_refresh_files" style="padding: 4px; display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 22px;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12" style="display: block;">
+                            <polyline points="23 4 23 10 17 10"></polyline>
+                            <polyline points="1 20 1 14 7 14"></polyline>
+                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <button class="nav-btn active" id="btn-tab-cooldowns" onclick="switchTab('cooldowns')">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <span data-i18n="nav_cooldowns">Группы кулдаунов</span>
+                </button>
+                <button class="nav-btn" id="btn-tab-items" onclick="switchTab('items')">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                    </svg>
+                    <span data-i18n="nav_items">Параметры предметов</span>
+                </button>
+                <button class="nav-btn" id="btn-tab-nodes" onclick="switchTab('nodes')">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="5" r="3"></circle>
+                        <circle cx="5" cy="19" r="3"></circle>
+                        <circle cx="19" cy="19" r="3"></circle>
+                        <path d="M12 8v8M12 16H5M12 16h7"></path>
+                    </svg>
+                    <span data-i18n="nav_nodes">Дерево Nodes</span>
+                </button>
+                <button class="nav-btn" id="btn-tab-spawners" onclick="switchTab('spawners')">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                        <polyline points="2 17 12 22 22 17"></polyline>
+                        <polyline points="2 12 12 17 22 12"></polyline>
+                    </svg>
+                    <span data-i18n="nav_spawners">Пресеты Spawners</span>
+                </button>
+                <button class="nav-btn" id="btn-tab-zonemodifiers" onclick="switchTab('zonemodifiers')">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                        <path d="M2 12h20"></path>
+                    </svg>
+                    <span data-i18n="nav_zonemodifiers">Модификатор зон</span>
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="connection-status">
+                    <span class="status-dot online"></span>
+                    <span data-i18n="local_server_connected">Локальный сервер подключен</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- App Header -->
+            <header class="app-header">
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <button id="btn-toggle-sidebar" class="btn btn-secondary btn-sm" onclick="toggleSidebar()" title="Скрыть/показать боковую панель" data-i18n-title="tooltip_toggle_sidebar" style="padding: 6px 10px;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" style="display: block;">
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <line x1="3" y1="18" x2="21" y2="18"></line>
+                        </svg>
+                    </button>
+                    <div class="header-info">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <h1 id="page-title">Редактор групп кулдаунов</h1>
+                            <button id="btn-help-info" class="btn-help-info" onclick="openHelpModal()" title="Справка по разделу" data-i18n-title="tooltip_help_info">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                                </svg>
+                            </button>
+                        </div>
+                        <p id="page-subtitle" class="text-muted">Управление конфигурационными файлами в директории WindowsServer\Loot\</p>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <div id="dirty-badge" class="dirty-badge hidden">
+                        <span class="pulse-ring"></span>
+                        <span id="dirty-count" data-i18n="dirty_badge_text">Есть несохраненные изменения</span>
+                    </div>
+                    <button id="btn-save-global" class="btn btn-primary btn-save" onclick="saveActiveTab()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                            <polyline points="7 3 7 8 15 8"></polyline>
+                        </svg>
+                        <span data-i18n="btn_save_all">Сохранить всё</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- TAB 1: COOLDOWN GROUPS EDITOR -->
+            <section id="tab-cooldowns" class="tab-content active">
+                <!-- Cooldown File Selector & Globals -->
+                <div class="card file-selector-card">
+                    <div class="card-header-flex">
+                        <div class="file-picker">
+                            <label for="cooldown-file-select" class="form-label font-secondary" data-i18n="active_override_file">Активный файл оверрайда:</label>
+                            <div class="select-wrapper">
+                                <select id="cooldown-file-select" onchange="onCooldownFileChange()">
+                                    <!-- Options populated dynamically -->
+                                </select>
+                            </div>
+                            <button class="btn btn-secondary btn-sm" onclick="openCreateFileModal()">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" class="btn-icon-left">
+                                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                </svg>
+                                <span data-i18n="btn_create_new_file">Создать новый файл</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="cooldown-globals-grid">
+                        <div class="form-group flex-row">
+                            <label class="switch">
+                                <input type="checkbox" id="cooldown-delete-all-default" onchange="markCooldownsDirty()">
+                                <span class="slider round"></span>
+                            </label>
+                            <div class="switch-label-group">
+                                <span class="form-label-title" data-i18n="delete_all_default_cooldowns">Удалить все дефолтные группы кулдаунов (DeleteAllDefaultCooldownGroups)</span>
+                                <span class="form-label-desc" data-i18n="delete_all_default_cooldowns_desc">Полностью игнорировать системные настройки кулдаунов игры</span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label-title" data-i18n="default_groups_to_delete">Дефолтные группы к удалению (DefaultCooldownGroupsToDelete)</label>
+                            <span class="form-label-desc" style="margin-bottom: 8px;" data-i18n="default_groups_to_delete_desc">Список групп из папки Default, которые будут удалены из системы спавна</span>
+                            <div class="tag-input-container">
+                                <div id="deleted-groups-chips" class="tag-chips-wrapper">
+                                    <!-- Chips populated dynamically -->
+                                </div>
+                                <div class="tag-input-row">
+                                    <select id="select-delete-default-group">
+                                        <!-- Default groups dropdown -->
+                                    </select>
+                                    <button class="btn btn-secondary btn-sm" onclick="addDeletedDefaultGroup()" data-i18n="btn_add_to_list">Добавить в список</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cooldown Groups Cards list -->
+                <div class="section-title-bar">
+                    <h2 data-i18n="cooldown_groups_in_file">Список групп кулдаунов в этом файле</h2>
+                    <button class="btn btn-accent btn-sm" onclick="createNewCooldownGroup()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" class="btn-icon-left">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        <span data-i18n="btn_add_new_group">Добавить новую группу</span>
+                    </button>
+                </div>
+
+                <div id="cooldown-groups-container" class="cooldown-groups-grid-layout">
+                    <!-- Cards populated dynamically -->
+                </div>
+            </section>
+
+            <!-- TAB 2: ITEMS PARAMETERS EDITOR -->
+            <section id="tab-items" class="tab-content">
+                <!-- Search, Filters and Tools -->
+                <div class="card filters-card">
+                    <div class="filters-grid">
+                        <div class="filter-search">
+                            <label class="form-label" data-i18n="search_item_id">Поиск по ID предмета</label>
+                            <div class="search-input-wrapper">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="search-icon">
+                                    <circle cx="11" cy="11" r="8"></circle>
+                                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                </svg>
+                                <input type="text" id="item-search-input" placeholder="Введите ID предмета для поиска..." data-i18n-placeholder="placeholder_search_item" oninput="onItemSearchChange()">
+                            </div>
+                        </div>
+
+                        <div class="filter-cooldown-group">
+                            <label class="form-label" data-i18n="cooldown_group">Группа кулдауна</label>
+                            <div class="select-wrapper">
+                                <select id="filter-cooldown-select" onchange="onItemFilterChange()">
+                                    <option value="ALL" data-i18n="all_groups">Все группы</option>
+                                    <option value="NONE" data-i18n="no_group">Без группы (пусто)</option>
+                                    <!-- Dynamic options -->
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="filter-locations">
+                            <label class="form-label" data-i18n="spawn_location">Локация спавна</label>
+                            <div class="location-filter-chips">
+                                <button class="loc-filter-chip active" data-loc="Coastal" onclick="toggleLocationFilter(this)">Coastal</button>
+                                <button class="loc-filter-chip active" data-loc="Continental" onclick="toggleLocationFilter(this)">Continental</button>
+                                <button class="loc-filter-chip active" data-loc="Mountain" onclick="toggleLocationFilter(this)">Mountain</button>
+                            </div>
+                        </div>
+
+                        <div class="filter-status">
+                            <label class="form-label" data-i18n="parameter_status">Статус параметров</label>
+                            <div class="checkbox-filters-group">
+                                <label class="checkbox-wrapper">
+                                    <input type="checkbox" id="filter-custom-only" onchange="onItemFilterChange()">
+                                    <span class="checkbox-box"></span>
+                                    <span class="checkbox-label" data-i18n="only_modified">Только измененные</span>
+                                </label>
+                                <label class="checkbox-wrapper">
+                                    <input type="checkbox" id="filter-disabled-only" onchange="onItemFilterChange()">
+                                    <span class="checkbox-box"></span>
+                                    <span class="checkbox-label" data-i18n="only_disabled">Только отключенные</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="filters-footer">
+                        <div class="source-info">
+                            <span data-i18n="loaded_parameters">Загружено параметров:</span> <strong id="total-items-count">0</strong>
+                            <span class="bullet-separator">•</span>
+                            <span data-i18n="overridden">Модифицировано:</span> <strong id="overridden-items-count" class="text-accent">0</strong>
+                            <span class="bullet-separator">•</span>
+                            <span data-i18n="file">Файл:</span> <code id="items-source-file">Parameters.json</code>
+                        </div>
+                        <div class="filters-footer-actions">
+                            <button class="btn btn-secondary btn-sm" onclick="resetFilters()" data-i18n="reset_filters">Сбросить фильтры</button>
+                            <button class="btn btn-accent btn-sm" onclick="openAddOverrideModal()">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" class="btn-icon-left">
+                                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                </svg>
+                                <span data-i18n="btn_override_new_item">Переопределить новый предмет</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Групповые операции (Bulk Edit) -->
+                <div class="card bulk-card" style="margin-bottom: 24px; border-left: 4px solid var(--color-accent); background: linear-gradient(135deg, var(--bg-card), rgba(0, 229, 255, 0.015));">
+                    <div class="card-header-flex" style="margin-bottom: 0px; padding-bottom: 0px; border-bottom: none;">
+                        <h3 class="font-secondary" style="font-size: 14px; color: var(--color-accent); display: flex; align-items: center; gap: 8px;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                                <rect x="3" y="3" width="7" height="9"></rect>
+                                <rect x="14" y="3" width="7" height="5"></rect>
+                                <rect x="14" y="12" width="7" height="9"></rect>
+                                <rect x="3" y="16" width="7" height="5"></rect>
+                            </svg>
+                            <span data-i18n="bulk_edit">Групповые операции (Bulk Edit)</span>
+                        </h3>
+                        <button id="btn-toggle-bulk" class="btn btn-secondary btn-xs" onclick="toggleBulkCard()" style="font-weight: 600;">
+                            [+] Развернуть
+                        </button>
+                    </div>
+                    
+                    <div id="bulk-card-body" class="hidden" style="margin-top: 16px; border-top: 1px solid var(--border-color); padding-top: 16px;">
+                        <div class="bulk-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 16px;">
+                            <div class="form-group select-xs">
+                                <label class="form-label" data-i18n="bulk_target">Область применения</label>
+                                <div class="select-wrapper">
+                                    <select id="bulk-target-select">
+                                        <option value="FILTERED" data-i18n="bulk_target_filtered">Все отфильтрованные предметы</option>
+                                        <option value="CHECKED" data-i18n="bulk_target_checked">Только выбранные галочками предметы</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group select-xs">
+                                <label class="form-label" data-i18n="cooldown_group">Группа кулдауна</label>
+                                <div class="select-wrapper">
+                                    <select id="bulk-cooldown-group">
+                                        <option value="KEEP" data-i18n="keep_no_change">— Без изменений —</option>
+                                        <option value="NONE" data-i18n="remove_group">Убрать группу (без группы)</option>
+                                        <!-- Dynamic groups options -->
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group select-xs">
+                                <label class="form-label" data-i18n="spawn_disabled">Спавн выключен</label>
+                                <div class="select-wrapper">
+                                    <select id="bulk-disabled">
+                                        <option value="KEEP" data-i18n="keep_no_change">— Без изменений —</option>
+                                        <option value="TRUE" data-i18n="disable_spawn">Запретить спавн (True)</option>
+                                        <option value="FALSE" data-i18n="enable_spawn">Разрешить спавн (False)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group select-xs">
+                                <label class="form-label" data-i18n="spawn_locations_label">Локации спавна</label>
+                                <div class="select-wrapper">
+                                    <select id="bulk-locations">
+                                        <option value="KEEP" data-i18n="keep_no_change">— Без изменений —</option>
+                                        <option value="ALL" data-i18n="all_locations">Все локации (Cst + Cnt + Mnt)</option>
+                                        <option value="COASTAL" data-i18n="only_coastal">Только Coastal</option>
+                                        <option value="CONTINENTAL" data-i18n="only_continental">Только Continental</option>
+                                        <option value="MOUNTAIN" data-i18n="only_mountain">Только Mountain</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group select-xs">
+                                <label class="form-label" data-i18n="bulk_cooldown_min_max">Кулдаун Min / Max (ч)</label>
+                                <div style="display: flex; gap: 8px;">
+                                    <input type="number" step="0.1" min="0" id="bulk-cooldown-min" placeholder="Min" style="padding: 6px 12px; font-size: 13px;">
+                                    <input type="number" step="0.1" min="0" id="bulk-cooldown-max" placeholder="Max" style="padding: 6px 12px; font-size: 13px;">
+                                </div>
+                            </div>
+
+                            <div class="form-group select-xs">
+                                <label class="form-label" data-i18n="bulk_durability_override">Оверрайд прочности</label>
+                                <div class="select-wrapper">
+                                    <select id="bulk-durability-override">
+                                        <option value="KEEP" data-i18n="keep_no_change">— Без изменений —</option>
+                                        <option value="TRUE" data-i18n="override_durability_true">Переопределить прочность (True)</option>
+                                        <option value="FALSE" data-i18n="override_durability_false">Использовать дефолт карты (False)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group select-xs">
+                                <label class="form-label" data-i18n="bulk_initial_usage_random">Нач. прочность / Случ. износ %</label>
+                                <div style="display: flex; gap: 8px;">
+                                    <input type="number" min="0" max="100" id="bulk-initial-usage" placeholder="Начальная" data-i18n-placeholder="placeholder_initial" style="padding: 6px 12px; font-size: 13px;">
+                                    <input type="number" min="0" max="100" id="bulk-random-usage" placeholder="Износ %" data-i18n-placeholder="placeholder_wear" style="padding: 6px 12px; font-size: 13px;">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid var(--border-color); padding-top: 12px; flex-wrap: wrap;">
+                            <button class="btn btn-secondary btn-sm" onclick="clearCheckedItems()">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" class="btn-icon-left">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                    <line x1="9" y1="9" x2="15" y2="15"></line>
+                                    <line x1="15" y1="9" x2="9" y2="15"></line>
+                                </svg>
+                                <span data-i18n="btn_clear_selection">Сбросить выделение</span>
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="clearBulkFields()" data-i18n="btn_clear_fields">Очистить поля</button>
+                            <button class="btn btn-primary btn-sm" onclick="applyBulkChanges()" data-i18n="btn_apply_changes" style="background-color: var(--color-accent); border-color: var(--color-accent); color: #0b0c10; box-shadow: 0 0 10px rgba(0, 229, 255, 0.35);">
+                                Применить изменения
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Items Parameters Table Container -->
+                <div class="card" style="padding: 0; overflow: hidden; margin-bottom: 24px;">
+                    <div class="table-container" style="margin-bottom: 0;">
+                        <table class="items-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 40px; text-align: center;"><input type="checkbox" id="select-all-items" onchange="toggleSelectAllItems(this)" style="cursor: pointer;"></th>
+                                    <th class="col-id sortable" onclick="sortItems('Id')"><span data-i18n="table_header_id">ID Предмета</span> <span class="sort-indicator" id="sort-Id"></span></th>
+                                    <th class="col-status" data-i18n="table_header_status">Статус</th>
+                                    <th class="col-disabled" data-i18n="table_header_spawn_disabled">Спавн выкл.</th>
+                                    <th class="col-locations" data-i18n="table_header_locations">Локации появления</th>
+                                    <th class="col-cooldown-min sortable" onclick="sortItems('CooldownPerSquadMemberMin')"><span data-i18n="table_header_cooldown_min">Кулдаун Min</span> <span class="sort-indicator" id="sort-CooldownPerSquadMemberMin"></span></th>
+                                    <th class="col-cooldown-max sortable" onclick="sortItems('CooldownPerSquadMemberMax')"><span data-i18n="table_header_cooldown_max">Кулдаун Max</span> <span class="sort-indicator" id="sort-CooldownPerSquadMemberMax"></span></th>
+                                    <th class="col-cooldown-group" data-i18n="table_header_cooldown_group">Группа кулдауна</th>
+                                    <th class="col-variations" data-i18n="table_header_variations">Вариации</th>
+                                    <th class="col-usage-override" data-i18n="table_header_durability">Своя прочность</th>
+                                    <th class="col-initial-usage" data-i18n="table_header_initial">Нач. прочность</th>
+                                    <th class="col-random-usage" data-i18n="table_header_random">Случ. износ %</th>
+                                    <th class="col-actions" data-i18n="table_header_actions">Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody id="items-table-body">
+                                <!-- Items rows populated dynamically -->
+                            </tbody>
+                        </table>
+
+                        <div id="no-items-message" class="no-results hidden">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="48" height="48">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                <line x1="8" y1="11" x2="14" y2="11"></line>
+                            </svg>
+                            <h3 data-i18n="no_items_found">Предметы не найдены</h3>
+                            <p data-i18n="try_changing_filters">Попробуйте изменить параметры поиска или фильтрации</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table Pagination -->
+                <div class="pagination-container">
+                    <div class="pagination-info">
+                        <span data-i18n="pagination_shown">Показано</span> <span id="pag-start">0</span> - <span id="pag-end">0</span> <span data-i18n="pagination_of">из</span> <span id="pag-total">0</span> <span data-i18n="pagination_items">предметов</span>
+                    </div>
+                    <div class="pagination-page-size">
+                        <span data-i18n="rows_per_page">Строк на странице:</span>
+                        <div class="select-wrapper select-xs">
+                            <select id="pagination-size" onchange="onPageSizeChange()">
+                                <option value="15">15</option>
+                                <option value="25" selected>25</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="pagination-controls" id="pagination-controls">
+                        <!-- Pagination buttons populated dynamically -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 3: NODES EDITOR -->
+            <section id="tab-nodes" class="tab-content">
+                <!-- Nodes File Selector & Controls -->
+                <div class="card file-selector-card">
+                    <div class="card-header-flex">
+                        <div class="file-picker">
+                            <label for="nodes-file-select" class="form-label font-secondary" data-i18n="active_nodes_file">Активный файл Nodes:</label>
+                            <div class="select-wrapper">
+                                <select id="nodes-file-select" onchange="onNodesFileChange()">
+                                    <!-- Options populated dynamically -->
+                                </select>
+                            </div>
+                            <button id="btn-create-node-file" class="btn btn-secondary btn-sm" onclick="openCreateNodeFileModal()">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" class="btn-icon-left">
+                                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                </svg>
+                                <span data-i18n="btn_create_new_file">Создать новый файл</span>
+                            </button>
+                        </div>
+                        <div class="nodes-source-toggle-group">
+                            <button id="btn-nodes-src-override" class="nodes-source-btn active mode-override" onclick="setNodesSourceMode('override')" title="Показать файлы из папки Override (редактируемые)" data-i18n-title="tooltip_show_override_files">✏️ Override</button>
+                            <button id="btn-nodes-src-default" class="nodes-source-btn" onclick="setNodesSourceMode('default')" title="Показать оригинальные системные файлы (только чтение)" data-i18n-title="tooltip_show_default_files">📖 Default</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="nodes-layout">
+                    <!-- Left: Main Nodes Tree Editor -->
+                    <div class="nodes-tree-area">
+                        <div class="section-title-bar" style="margin-top: 0;">
+                            <h2 id="nodes-tree-heading">Иерархическая структура дерева Nodes</h2>
+                            <div style="display: flex; gap: 12px; align-items: center;">
+                                <button id="btn-add-root-node" class="btn btn-accent btn-sm" onclick="addRootNode()">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" class="btn-icon-left">
+                                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                                    </svg>
+                                    <span data-i18n="btn_add_root_node">Добавить корневую ноду</span>
+                                </button>
+                                <div style="display: flex; gap: 6px; align-items: center;">
+                                    <button id="btn-nodes-mode-editor" class="spawner-mode-btn active" onclick="setNodesEditorMode('editor')">✏️ <span data-i18n="editor_mode_label">Редактор</span></button>
+                                    <button id="btn-nodes-mode-json" class="spawner-mode-btn" onclick="setNodesEditorMode('json')"> 📋 <span data-i18n="json_mode_label">JSON</span></button>
+                                </div>
+                                <button id="btn-toggle-nodes-sidebar" class="btn btn-secondary btn-sm btn-toggle-nodes-sidebar" onclick="toggleNodesSidebar()" title="Скрыть/показать панель базы Nodes" data-i18n-title="tooltip_toggle_nodes_db">
+                                    📖 <span data-i18n="btn_nodes_database_toggle">База нод</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="card tree-editor-card" style="flex-grow: 1; height: 100%; overflow-y: auto; margin-bottom: 0;">
+                            <div id="nodes-tree-wrapper" class="tree-root-container">
+                                <!-- Tree nodes populated dynamically -->
+                            </div>
+                            <div id="no-nodes-message" class="no-results hidden">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="48" height="48">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="12" y1="8" x2="12" y2="16"></line>
+                                    <line x1="8" y1="12" x2="16" y2="12"></line>
+                                </svg>
+                                <h3 data-i18n="tree_is_empty">Дерево пусто</h3>
+                                <p data-i18n="tree_is_empty_desc">Добавьте корневую ноду или создайте новый файл на основе шаблона</p>
+                            </div>
+                        </div>
+
+                        <!-- JSON Viewer/Editor Card for Nodes -->
+                        <div id="nodes-json-card" class="card hidden" style="flex-grow: 1; margin-bottom: 0; padding: 20px; display: flex; flex-direction: column;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                                <h3 class="font-secondary" style="font-size: 15px; color: var(--color-accent); display: flex; align-items: center; gap: 8px;">
+                                    📋 <span data-i18n="json_data_nodes_title">JSON данные дерева Nodes</span>
+                                </h3>
+                                <div style="display: flex; gap: 12px; align-items: center;">
+                                    <span id="nodes-json-error" class="hidden" style="color: var(--color-danger); font-size: 11px; font-weight: 700; background: rgba(255, 23, 68, 0.08); padding: 4px 10px; border-radius: 4px; border: 1px solid var(--color-danger);">
+                                        ⚠️ <span data-i18n="invalid_json_label">Некорректный JSON!</span>
+                                    </span>
+                                </div>
+                            </div>
+                            <textarea id="nodes-json-textarea" oninput="onNodesJsonTextareaInput()" style="flex: 1; min-height: 400px; width: 100%; font-family: monospace; font-size: 13px; background-color: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); color: var(--color-text-main); padding: 12px; box-sizing: border-box; resize: vertical; outline: none; transition: var(--transition-fast); line-height: 1.5;"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Right: Default Nodes Database Panel -->
+                    <div class="nodes-default-sidebar">
+                        <div class="card" style="height: 100%; display: flex; flex-direction: column; padding: 20px; margin-bottom: 0; gap: 12px;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                                <h3 class="font-secondary" style="font-size: 15px; color: var(--color-accent); display: flex; align-items: center; gap: 8px; margin-bottom: 0;">
+                                    📖 <span data-i18n="default_nodes_db_title">База Nodes по умолчанию</span>
+                                </h3>
+                                <button class="btn btn-secondary btn-xs" onclick="toggleNodesSidebar()" title="Свернуть панель" data-i18n-title="tooltip_collapse_panel" style="padding: 4px 8px; font-size: 10px;">✕ <span data-i18n="btn_hide">Скрыть</span></button>
+                            </div>
+                            
+                            <!-- Search inside default nodes -->
+                            <div class="search-input-wrapper" style="flex-shrink: 0;">
+                                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="11" cy="11" r="8"></circle>
+                                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                </svg>
+                                <input type="text" id="nodes-default-search" placeholder="Поиск дефолтных путей Nodes..." oninput="filterDefaultNodesList()">
+                            </div>
+                            
+                            <!-- Scrollable list of nodes paths -->
+                            <div id="nodes-default-list" style="flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 4px;">
+                                <!-- Dynamic nodes paths populated by JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 4: SPAWNERS PRESETS EDITOR -->
+            <section id="tab-spawners" class="tab-content">
+                <div class="spawners-layout">
+                    <!-- Left Column: Virtual Folder Tree Explorer -->
+                    <div class="spawners-sidebar-explorer">
+                        <div class="card explorer-search-card" style="margin-bottom: 12px; padding: 16px;">
+                            <div class="card-header-flex" onclick="toggleSpawnerSearchCollapse()" style="cursor: pointer; user-select: none; align-items: center;">
+                                <label class="form-label font-secondary" style="margin-bottom: 0; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                                    🔍 <span data-i18n="search_spawners_title">Поиск пресетов спавна</span>
+                                </label>
+                                <span id="spawner-search-toggle-btn" style="font-size: 11px; font-weight: 600; color: var(--color-primary);">[-] Свернуть</span>
+                            </div>
+                            
+                            <div id="spawner-search-body" style="margin-top: 12px;">
+                                <div class="search-input-wrapper">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="search-icon">
+                                        <circle cx="11" cy="11" r="8"></circle>
+                                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                    </svg>
+                                    <input type="text" id="spawner-search-input" placeholder="Введите имя файла для поиска..." data-i18n-placeholder="placeholder_search_spawner_files" oninput="onSpawnerSearchChange()">
+                                </div>
+                                
+                                <!-- Spawner Explorer Filters -->
+                                <div class="spawner-filters-wrapper" style="margin-top: 12px;">
+                                    <div style="font-size: 11px; color: var(--color-text-muted); display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                        <span data-i18n="filters_and_view">Фильтры и отображение:</span>
+                                        <button onclick="resetSpawnerFilters()" class="btn-reset-filters" title="Сбросить все фильтры и вернуться к списку без категорий" data-i18n-title="tooltip_reset_spawner_filters" data-i18n="reset_all_spawner_filters" style="background: none; border: none; color: var(--color-primary); font-size: 10px; cursor: pointer; padding: 0; font-weight: 600;">Сбросить всё</button>
+                                    </div>
+                                    <div class="spawner-filter-btn-group">
+                                        <button id="btn-spawner-view-flat" class="spawner-filter-btn active" onclick="setSpawnerViewMode('flat')" title="Показать все файлы общим плоским списком (без группировки по папкам)" data-i18n-title="tooltip_show_flat_files">
+                                            📄 <span data-i18n="spawner_view_flat_btn">Все файлы</span>
+                                        </button>
+                                        <button id="btn-spawner-view-categories" class="spawner-filter-btn mode-categories" onclick="setSpawnerViewMode('categories')" title="Сгруппировать файлы по виртуальным папкам и категориям" data-i18n-title="tooltip_group_spawner_folders">
+                                            📁 <span data-i18n="spawner_view_categories_btn">По папкам</span>
+                                        </button>
+                                        <button id="btn-filter-state-default" class="spawner-filter-btn" onclick="toggleSpawnerStateFilter('Default')" title="Показывать только оригинальные системные файлы пресетов" data-i18n-title="tooltip_show_default_spawners">
+                                            Default
+                                        </button>
+                                        <button id="btn-filter-state-override" class="spawner-filter-btn" onclick="toggleSpawnerStateFilter('Override')" title="Показывать только модифицированные файлы с оверрайдами" data-i18n-title="tooltip_show_override_spawners">
+                                            Override
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card explorer-tree-card" style="padding: 16px; flex-grow: 1; display: flex; flex-direction: column; overflow-y: auto;">
+                            <div id="spawners-tree-container" class="spawner-tree-root">
+                                <!-- Virtual folder tree generated dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Right Column: Active Spawner Details Editor -->
+                    <div class="spawners-editor-area">
+                        <!-- Empty State -->
+                        <div id="spawner-empty-state" class="card no-results" style="height: 100%; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 48px;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="64" height="64" class="text-muted" style="margin-bottom: 16px;">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                            </svg>
+                            <h3 data-i18n="select_spawner_preset">Выберите пресет спавна</h3>
+                            <p data-i18n="select_spawner_preset_desc">Выберите интересующий вас spawner-файл в левой панели для детального редактирования или создания оверрайда</p>
+                        </div>
+                        
+                        <!-- Spawner Editor Content -->
+                        <div id="spawner-editor-container" class="hidden">
+                            <!-- Top Info & Actions Card -->
+                            <div class="card spawner-info-card" style="margin-bottom: 20px; padding: 20px; background: linear-gradient(135deg, var(--bg-card), rgba(0, 229, 255, 0.01)); border-left: 4px solid var(--color-accent);">
+                                <div class="spawner-info-header" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap;">
+                                    <div style="flex-grow: 1;">
+                                        <h2 id="spawner-active-title" style="font-size: 18px; font-weight: 700; word-break: break-all; color: var(--color-text-main);">Buildings-Airfield_Hangar-Examine_CardBox.json</h2>
+                                        <div style="margin-top: 8px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                                            <span id="spawner-status-badge" class="badge">Дефолт</span>
+                                            <span id="spawner-override-path-hint" class="text-muted" style="font-size: 11px;"></span>
+                                        </div>
+                                    </div>
+                                    <div class="spawner-top-actions" style="display: flex; gap: 12px;">
+                                        <button id="btn-delete-spawner-override" class="btn btn-danger btn-sm hidden" onclick="deleteActiveSpawnerOverride()" data-i18n="btn_delete_override">
+                                            Удалить оверрайд
+                                        </button>
+                                        <button id="btn-create-spawner-override" class="btn btn-accent btn-sm" onclick="openCreateSpawnerOverrideModal()" data-i18n="btn_create_override">
+                                            Создать оверрайд
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div style="margin-top: 16px; display: flex; justify-content: space-between; align-items: center; gap: 16px; border-top: 1px dashed var(--border-color); padding-top: 16px; flex-wrap: wrap;">
+                                    <div id="spawner-override-subfolder-row" class="form-group hidden" style="max-width: 400px; margin-bottom: 0; flex-grow: 1;">
+                                        <label for="spawner-override-subfolder-select" class="form-label" style="font-size: 11px;" data-i18n="spawner_override_subfolder_label">Подкаталог оверрайда (в папке Presets/Override/):</label>
+                                        <div style="display: flex; gap: 12px; align-items: center;">
+                                            <div class="select-wrapper select-xs" style="width: 200px;">
+                                                <select id="spawner-override-subfolder-select" onchange="onSpawnerSubfolderChange()">
+                                                    <!-- Dynamically populated -->
+                                                </select>
+                                            </div>
+                                            <span class="form-label-desc" style="font-size: 10px;" data-i18n="spawner_override_subfolder_desc">Папка сохранения</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="spawner-mode-switcher" style="display: flex; gap: 12px; align-items: center; margin-left: auto;">
+                                        <button id="btn-spawner-mode-editor" class="spawner-mode-btn active" onclick="setSpawnerEditorMode('editor')">
+                                            ✏️ <span data-i18n="editor_mode_label">Редактор</span>
+                                        </button>
+                                        <button id="btn-spawner-mode-json" class="spawner-mode-btn" onclick="setSpawnerEditorMode('json')">
+                                            📋 <span data-i18n="json_view_mode_label">Просмотр JSON</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Dynamic Content Sections -->
+                            <div id="spawner-sections-container">
+                                <!-- Populated dynamically with FixedItems, Items, Nodes, Subpresets blocks -->
+                            </div>
+                            
+                            <!-- JSON Viewer/Editor Card -->
+                            <div id="spawner-json-card" class="card hidden" style="margin-bottom: 24px; padding: 20px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                                    <h3 class="font-secondary" style="font-size: 15px; color: var(--color-accent); display: flex; align-items: center; gap: 8px;">
+                                        📋 <span data-i18n="json_data_spawner_title">JSON данные пресета</span>
+                                    </h3>
+                                    <div style="display: flex; gap: 12px; align-items: center;">
+                                        <span id="spawner-json-error" class="hidden" style="color: var(--color-danger); font-size: 11px; font-weight: 700; background: rgba(255, 23, 68, 0.08); padding: 4px 10px; border-radius: 4px; border: 1px solid var(--color-danger);">
+                                            ⚠️ <span data-i18n="invalid_json_label">Некорректный JSON!</span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <textarea id="spawner-json-textarea" oninput="onSpawnerJsonTextareaInput()" style="width: 100%; height: 500px; font-family: monospace; font-size: 13px; background-color: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); color: var(--color-text-main); padding: 12px; box-sizing: border-box; resize: vertical; outline: none; transition: var(--transition-fast);"></textarea>
+                            </div>
+                            
+                            <!-- General Settings Card (optional and collapsible) -->
+                            <div id="spawner-general-card" class="card spawner-settings-card hidden" style="margin-bottom: 24px; padding: 20px;">
+                                <div class="card-header-flex" onclick="toggleSpawnerSettingsCollapse()" style="cursor: pointer; user-select: none; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                                    <h3 class="font-secondary" style="font-size: 15px; color: var(--color-primary); display: flex; align-items: center; gap: 8px;">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                                            <circle cx="12" cy="12" r="3"></circle>
+                                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                                        </svg>
+                                        <span data-i18n="general_spawner_settings_title">Общие параметры спавна (General Settings)</span>
+                                    </h3>
+                                    <button class="btn btn-secondary btn-xs" id="btn-toggle-spawner-settings" style="font-weight: 600;">[-] Свернуть</button>
+                                </div>
+                                
+                                <div id="spawner-settings-body">
+                                    <div id="spawner-settings-grid" class="spawner-settings-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+                                        <!-- Fields populated dynamically with delete buttons -->
+                                    </div>
+                                    
+                                    <!-- Add optional field selector -->
+                                    <div class="add-optional-field-row" style="margin-top: 20px; border-top: 1px dashed var(--border-color); padding-top: 20px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                                        <span class="form-label" style="margin-bottom: 0;" data-i18n="add_field_to_config_label">Добавить поле в конфигурацию:</span>
+                                        <div class="select-wrapper select-xs" style="width: 250px;">
+                                            <select id="spawner-add-field-select">
+                                                <!-- Dynamic ommited fields -->
+                                            </select>
+                                        </div>
+                                        <button class="btn btn-accent btn-sm" onclick="addSpawnerGeneralField()" data-i18n="btn_add_field">
+                                            + Добавить поле
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 5: ZONE MODIFIERS EDITOR -->
+            <section id="tab-zonemodifiers" class="tab-content">
+                <div class="zonemodifiers-layout">
+                    <!-- Left Panel: Modifiers List and Forms -->
+                    <div class="zm-sidebar">
+                        <!-- Mode Selector Card -->
+                        <div class="card" style="margin-bottom: 16px; padding: 16px;">
+                            <label class="form-label" style="font-size: 11px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; display: block;" data-i18n="zm_edit_mode_label">Режим редактирования зон:</label>
+                            <div class="zm-mode-toggle-group" style="display: flex; gap: 8px; width: 100%;">
+                                <button id="zm-btn-mode-general" class="btn btn-secondary btn-sm active" onclick="setZoneModifiersMode('general')" style="flex-grow: 1; text-align: center; font-size: 12px; padding: 8px 12px; font-weight: 700; background-color: var(--color-primary-glow); border-color: var(--color-primary); color: #fff;">
+                                    🌐 <span data-i18n="zm_mode_general_btn">General Modifiers</span>
+                                </button>
+                                <button id="zm-btn-mode-spawners" class="btn btn-secondary btn-sm" onclick="setZoneModifiersMode('spawners')" style="flex-grow: 1; text-align: center; font-size: 12px; padding: 8px 12px; font-weight: 700;">
+                                    📦 <span data-i18n="zm_mode_spawners_btn">Spawners Zones</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="card" style="margin-bottom: 16px;">
+                            <div class="card-header-flex">
+                                <h3 class="font-secondary" id="zm-list-title" data-i18n="zm_modifiers_title">Модификаторы зон</h3>
+                                <button class="btn btn-accent btn-sm" id="zm-btn-add-modifier" onclick="addNewModifier()">+ <span data-i18n="btn_add">Добавить</span></button>
+                            </div>
+                            <div class="zm-modifiers-list" id="zm-modifiers-list">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+
+                        <!-- Active Modifier Details -->
+                        <div class="card hidden" id="zm-active-card">
+                            <div class="card-header-flex" style="border-bottom: 1px dashed var(--border-color); padding-bottom: 12px; margin-bottom: 16px;">
+                                <h3 class="font-secondary" id="zm-active-title" data-i18n="zm_active_title">Параметры модификатора</h3>
+                                <button class="btn btn-danger btn-xs" id="zm-btn-delete-modifier" onclick="deleteActiveModifier()" data-i18n="btn_delete">Удалить</button>
+                            </div>
+                            
+                            <div class="form-group" id="zm-active-name-group">
+                                <label for="zm-mod-name" class="form-label" data-i18n="zm_mod_name_label">Название модификатора:</label>
+                                <input type="text" id="zm-mod-name" oninput="onActiveModifierNameChange(this.value)">
+                            </div>
+
+                            <div class="zm-multipliers-list" id="zm-multipliers-list-container">
+                                <div class="form-group">
+                                    <label for="zm-mult-spawn-prob" class="form-label font-secondary">
+                                        <span class="form-label-title">Spawn Prob Mult (SpawnerProbabilityMultiplier)</span>
+                                        <span class="form-label-desc" style="margin-top: 2px;" data-i18n="zm_desc_spawn_prob">Влияет на частоту появления предметов открытого мира, лежащих на поверхностях.</span>
+                                    </label>
+                                    <input type="number" step="0.1" id="zm-mult-spawn-prob" oninput="onMultiplierChange('SpawnerProbabilityMultiplier', this.value)">
+                                </div>
+                                <div class="form-group">
+                                    <label for="zm-mult-exam-prob" class="form-label font-secondary">
+                                        <span class="form-label-title">Examine Prob Mult (ExamineSpawnerProbabilityMultiplier)</span>
+                                        <span class="form-label-desc" style="margin-top: 2px;" data-i18n="zm_desc_exam_prob">Влияет на частоту появления предметов, спрятанных внутри доступных для поиска контейнеров.</span>
+                                    </label>
+                                    <input type="number" step="0.1" id="zm-mult-exam-prob" oninput="onMultiplierChange('ExamineSpawnerProbabilityMultiplier', this.value)">
+                                </div>
+                                <div class="form-group">
+                                    <label for="zm-mult-exam-qty" class="form-label font-secondary">
+                                        <span class="form-label-title">Examine Qty Mult (ExamineSpawnerQuantityMultiplier)</span>
+                                        <span class="form-label-desc" style="margin-top: 2px;" data-i18n="zm_desc_exam_qty">Определяет, сколько предметов появляется в контейнерах.</span>
+                                    </label>
+                                    <input type="number" step="0.1" id="zm-mult-exam-qty" oninput="onMultiplierChange('ExamineSpawnerQuantityMultiplier', this.value)">
+                                </div>
+                                <div class="form-group">
+                                    <label for="zm-mult-spawn-exp" class="form-label font-secondary">
+                                        <span class="form-label-title">Spawn Exp Mult (SpawnerExpirationTimeInMinutesMultiplier)</span>
+                                        <span class="form-label-desc" style="margin-top: 2px;" data-i18n="zm_desc_spawn_exp">Как долго предметы в контейнерах появляются с момента их исчезновения.</span>
+                                    </label>
+                                    <input type="number" step="0.1" id="zm-mult-spawn-exp" oninput="onMultiplierChange('SpawnerExpirationTimeInMinutesMultiplier', this.value)">
+                                </div>
+                                <div class="form-group">
+                                    <label for="zm-mult-exam-exp" class="form-label font-secondary">
+                                        <span class="form-label-title">Examine Exp Mult (ExamineSpawnerExpirationTimeMultiplier)</span>
+                                        <span class="form-label-desc" style="margin-top: 2px;" data-i18n="zm_desc_exam_exp">Как долго открытые предметы появляются в мире с момента их исчезновения.</span>
+                                    </label>
+                                    <input type="number" step="0.1" id="zm-mult-exam-exp" oninput="onMultiplierChange('ExamineSpawnerExpirationTimeMultiplier', this.value)">
+                                </div>
+                            </div>
+
+                            <div class="zm-zones-section" style="margin-top: 20px;">
+                                <div class="card-header-flex" style="margin-bottom: 12px;">
+                                    <span class="form-label font-secondary" style="margin-bottom:0;" data-i18n="zm_zones_list_label">Список зон:</span>
+                                    <button class="btn btn-accent btn-xs" onclick="startDrawingZone()" id="btn-draw-zone-toggle" data-i18n="zm_btn_draw_on_map">
+                                        Нарисовать на карте
+                                    </button>
+                                </div>
+                                <div id="zm-zones-list" class="zm-zones-list">
+                                    <!-- Zones populated dynamically -->
+                                </div>
+                                <button class="btn btn-secondary btn-sm" onclick="addNewZoneToActiveModifier()" style="width: 100%; margin-top: 12px;" data-i18n="zm_btn_add_zone_manual">
+                                    + Добавить зону вручную
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Panel: Interactive Map -->
+                    <div class="zm-map-panel">
+                        <div class="card zm-map-card" style="display: flex; flex-direction: column; height: 100%;">
+                            <div class="zm-map-header">
+                                <div style="display: flex; align-items: center; gap: 24px;">
+                                    <div class="zm-map-title">
+                                        <span class="pulse-ring"></span>
+                                        <span data-i18n="zm_map_title">Интерактивная карта зон SCUM</span>
+                                    </div>
+
+                                    <!-- Toggle zones visibility -->
+                                    <div class="form-group flex-row" style="margin-bottom: 0; gap: 8px; user-select: none;">
+                                        <label class="switch switch-xs">
+                                            <input type="checkbox" id="zm-toggle-zones" checked onchange="toggleZonesVisibility(this.checked)">
+                                            <span class="slider round"></span>
+                                        </label>
+                                        <span class="form-label" style="font-size: 11px; margin-bottom: 0;" data-i18n="zm_show_hide_zones">Отображать/скрыть</span>
+                                    </div>
+
+                                    <!-- Zoom Controls -->
+                                    <div class="zm-zoom-controls" style="display: flex; gap: 4px;">
+                                        <button class="btn btn-secondary btn-xs" onclick="changeZoom(-0.1)" title="Отдалить" data-i18n-title="tooltip_zoom_out">-</button>
+                                        <span id="zm-zoom-badge" style="font-family: monospace; font-size: 11px; min-width: 40px; text-align: center; color: var(--color-accent); background: rgba(0, 229, 255, 0.05); padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(0, 229, 255, 0.15);">100%</span>
+                                        <button class="btn btn-secondary btn-xs" onclick="changeZoom(0.1)" title="Приблизить" data-i18n-title="tooltip_zoom_in">+</button>
+                                        <button class="btn btn-secondary btn-xs" onclick="resetZoom()" title="Сбросить зум" data-i18n-title="tooltip_reset_zoom">100%</button>
+                                    </div>
+
+                                    <!-- View Mode Switcher: Map vs JSON -->
+                                    <div class="zm-view-switcher" style="display: flex; gap: 8px; align-items: center; margin-left: auto;">
+                                        <button id="btn-zm-view-map" class="spawner-mode-btn active" onclick="setZmViewMode('map')" style="font-size: 11px; padding: 4px 10px; font-weight:600; height: 26px;">
+                                            🗺️ <span data-i18n="zm_view_map_btn">Карта</span>
+                                        </button>
+                                        <button id="btn-zm-view-json" class="spawner-mode-btn" onclick="setZmViewMode('json')" style="font-size: 11px; padding: 4px 10px; font-weight:600; height: 26px;">
+                                            📋 <span data-i18n="json_mode_label">JSON</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Coordinates -->
+                                <div id="zm-map-coordinates" class="zm-map-coords">
+                                    X: ---, Y: ---
+                                </div>
+                            </div>
+                            
+                            <div class="zm-map-container" id="zm-map-container" style="position: relative;">
+                                <div class="zm-map-wrapper" id="zm-map-wrapper">
+                                    <img src="map/map.webp" alt="SCUM Map" class="zm-map-image" id="zm-map-image">
+                                    <canvas class="zm-map-canvas" id="zm-map-canvas"></canvas>
+                                </div>
+                                
+                                <!-- Drawing instruction overlay -->
+                                <div id="zm-drawing-overlay" class="zm-drawing-overlay hidden">
+                                    <div class="zm-drawing-message">
+                                        <div class="zm-drawing-pulse"></div>
+                                        <span data-i18n="zm_drawing_instruction">Режим рисования зоны: зажмите ЛКМ и перетащите курсор на карте для выделения области.</span>
+                                        <button class="btn btn-secondary btn-xs" onclick="cancelDrawingZone()" style="margin-left: 12px;" data-i18n="btn_cancel">Отмена</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- JSON Viewer Wrapper (outside map-container for correct alignment) -->
+                            <div id="zm-json-wrapper" class="hidden" style="width: 100%; height: 100%; display: flex; flex-direction: column; box-sizing: border-box; padding: 20px; flex: 1; min-height: 0; background: #050608;">
+                                <div style="font-size: 12px; color: var(--color-text-muted); margin-bottom: 12px; font-family: var(--font-secondary); display: flex; align-items: center; gap: 16px; flex-shrink: 0; flex-wrap: wrap;">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <span data-i18n="zm_file_path_label">📁 Путь к файлу:</span>
+                                        <span id="zm-json-file-path" style="color: var(--color-accent); font-family: monospace; font-weight: 600; background: rgba(0, 229, 255, 0.05); padding: 2px 8px; border-radius: 4px; border: 1px solid rgba(0, 229, 255, 0.12);">---</span>
+                                    </div>
+                                    
+                                    <!-- Switch to enable editing -->
+                                    <div class="form-group flex-row" style="margin-bottom: 0; gap: 8px; user-select: none;">
+                                        <label class="switch switch-xs">
+                                            <input type="checkbox" id="zm-json-edit-toggle" onchange="toggleZmJsonEditing(this.checked)">
+                                            <span class="slider round"></span>
+                                        </label>
+                                        <span class="form-label" style="font-size: 11px; margin-bottom: 0; font-weight: 600;" data-i18n="btn_edit">Редактировать</span>
+                                    </div>
+
+                                    <!-- Save JSON Button -->
+                                    <button id="btn-zm-json-save" class="btn btn-accent btn-xs" disabled onclick="saveZmJson()" style="padding: 4px 10px; font-weight: 700; height: 22px; opacity: 0.5; pointer-events: none;">
+                                        💾 <span data-i18n="btn_save_json">Сохранить JSON</span>
+                                    </button>
+
+                                    <!-- JSON validation status -->
+                                    <span id="zm-json-error-badge" class="hidden" style="color: var(--color-danger); font-size: 11px; font-weight: 700; background: rgba(255, 23, 68, 0.08); padding: 2px 8px; border-radius: 4px; border: 1px solid var(--color-danger);">
+                                        ⚠️ <span data-i18n="invalid_json_label">Некорректный JSON!</span>
+                                    </span>
+                                </div>
+                                <textarea id="zm-json-textarea" readonly oninput="onZmJsonInput()" style="flex: 1; min-height: 0; width: 100%; font-family: monospace; font-size: 13px; background-color: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); color: var(--color-text-main); padding: 16px; box-sizing: border-box; resize: none; outline: none; transition: var(--transition-fast); line-height: 1.5;"></textarea>
+                            </div>
+
+                            <!-- Map Status Field -->
+                            <div class="zm-map-status" style="border-top: 1px solid var(--border-color); padding: 12px 20px; background-color: rgba(255, 255, 255, 0.01); display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--color-text-muted); font-family: var(--font-secondary);">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="font-weight: 600; color: var(--color-text-main);" data-i18n="zm_file_label">📁 Файл:</span>
+                                    <span id="zm-status-file-path" style="font-family: monospace; color: var(--color-accent); font-weight: 600;">---</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="font-weight: 600; color: var(--color-text-main);" data-i18n="zm_total_zones_label">Всего зон в конфиге:</span>
+                                    <span id="zm-status-zones-count" class="badge select-xs" style="background: rgba(0, 229, 255, 0.1); color: var(--color-accent); border: 1px solid rgba(0, 229, 255, 0.2); font-weight: 700; padding: 2px 8px; border-radius: 4px;">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- MODAL 1: Create New Cooldown Group File -->
+    <div id="modal-create-file" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 data-i18n="modal_create_cooldown_file_title">Создать новый файл групп кулдаунов</h3>
+                <button class="modal-close" onclick="closeModal('modal-create-file')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="new-file-name-input" class="form-label" data-i18n="file_name_label">Имя файла:</label>
+                    <input type="text" id="new-file-name-input" placeholder="например, Mod_Cooldowns_Food.json" data-i18n-placeholder="placeholder_filename_cooldown">
+                    <span class="form-label-desc" data-i18n="modal_create_cooldown_file_desc">Файл будет автоматически создан в папке WindowsServer\Loot\CooldownGroups\Override\</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('modal-create-file')" data-i18n="btn_cancel">Отмена</button>
+                <button class="btn btn-primary" onclick="submitCreateCooldownFile()" data-i18n="btn_create">Создать</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: Add New Item Override -->
+    <div id="modal-add-override" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 data-i18n="modal_override_item_title">Переопределить новый предмет</h3>
+                <button class="modal-close" onclick="closeModal('modal-add-override')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted" style="margin-bottom: 16px;" data-i18n="modal_override_item_desc">Выберите предмет из базы данных по умолчанию, чтобы начать редактировать его спавн-параметры.</p>
+                <div class="form-group">
+                    <label for="add-override-select" class="form-label" data-i18n="select_item_label">Выберите предмет:</label>
+                    <div class="select-wrapper">
+                        <select id="add-override-select">
+                            <!-- Populated with items not currently overridden -->
+                        </select>
+                    </div>
+                </div>
+                <div style="text-align: center; margin: 16px 0;" class="text-muted" data-i18n="or_label">— ИЛИ —</div>
+                <div class="form-group">
+                    <label for="add-override-custom-id" class="form-label" data-i18n="enter_item_id_manual">Введите вручную новый ID предмета:</label>
+                    <input type="text" id="add-override-custom-id" placeholder="например, My_Custom_Rifle_Id" data-i18n-placeholder="placeholder_custom_item_id">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('modal-add-override')" data-i18n="btn_cancel">Отмена</button>
+                <button class="btn btn-accent" onclick="submitAddItemOverride()" data-i18n="btn_add">Добавить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 3: Create New Nodes File -->
+    <div id="modal-create-node-file" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 data-i18n="modal_create_nodes_file_title">Создать новый файл Nodes</h3>
+                <button class="modal-close" onclick="closeModal('modal-create-node-file')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="new-node-file-name" class="form-label" data-i18n="file_name_label">Имя файла:</label>
+                    <input type="text" id="new-node-file-name" placeholder="например, Mod_Nodes_Airfield.json" data-i18n-placeholder="placeholder_filename_nodes">
+                    <span class="form-label-desc" data-i18n="modal_create_nodes_file_desc">Файл будет автоматически создан в папке WindowsServer\Loot\Nodes\Override\</span>
+                </div>
+                <div class="form-group">
+                    <label for="new-node-template-select" class="form-label" data-i18n="select_template_optional">Выберите шаблон (необязательно):</label>
+                    <div class="select-wrapper">
+                        <select id="new-node-template-select">
+                            <option value="" data-i18n="empty_nodes_template">-- Пустой файл (ItemLootTreeNodes) --</option>
+                            <!-- Option tags populated dynamically with defaultFiles -->
+                        </select>
+                    </div>
+                    <span class="form-label-desc" data-i18n="template_desc">Позволяет скопировать структуру оригинального файла из папки Default для модификации.</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('modal-create-node-file')" data-i18n="btn_cancel">Отмена</button>
+                <button class="btn btn-primary" onclick="submitCreateNodeFile()" data-i18n="btn_create">Создать</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 4: Select Item from database for Nodes -->
+    <div id="modal-select-node-item" class="modal-overlay hidden">
+        <div class="modal-card" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3 data-i18n="modal_select_item_title">Выбрать предмет из базы данных</h3>
+                <button class="modal-close" onclick="closeModal('modal-select-node-item')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="select-node-item-search" class="form-label" data-i18n="search_item_id">Поиск предмета по ID:</label>
+                    <div class="search-input-wrapper">
+                        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                        <input type="text" id="select-node-item-search" placeholder="Введите название или ID предмета..." data-i18n-placeholder="placeholder_enter_item_name_id" oninput="onSelectNodeItemSearch()">
+                    </div>
+                </div>
+                
+                <div class="form-label" style="margin-bottom: 8px;" data-i18n="search_results_limit">Результаты поиска (показано до 100 совпадений):</div>
+                <div id="select-node-item-list" class="select-item-popup-list">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('modal-select-node-item')" data-i18n="btn_close">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 5: Create New Spawner Override File -->
+    <div id="modal-create-spawner" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 data-i18n="modal_create_spawner_override_title">Создать новый оверрайд пресета спавна</h3>
+                <button class="modal-close" onclick="closeModal('modal-create-spawner')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted" style="margin-bottom: 16px;" data-i18n="modal_create_spawner_override_desc">Копирует оригинальный файл из папки Default в выбранную папку Override для последующего редактирования.</p>
+                <div class="form-group">
+                    <label class="form-label" data-i18n="default_template_file_label">Шаблон дефолтного файла:</label>
+                    <input type="text" id="create-spawner-template-name" readonly style="background-color: rgba(255,255,255,0.02); color: var(--color-text-muted);">
+                </div>
+                <div class="form-group">
+                    <label for="create-spawner-subfolder-input" class="form-label" data-i18n="save_to_override_folder_label">Сохранить в папку оверрайда (Presets/Override/):</label>
+                    <input type="text" id="create-spawner-subfolder-input" list="create-spawner-subfolders-datalist" placeholder="Выберите или введите новое имя папки..." data-i18n-placeholder="placeholder_select_or_enter_folder">
+                    <datalist id="create-spawner-subfolders-datalist">
+                        <!-- Populated dynamically with overrideDirs -->
+                    </datalist>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('modal-create-spawner')" data-i18n="btn_cancel">Отмена</button>
+                <button class="btn btn-accent" onclick="submitCreateSpawnerOverride()" data-i18n="btn_create_override">Создать оверрайд</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 6: Configure Custom Loot Directory -->
+    <div id="modal-configure-loot-dir" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 data-i18n="modal_configure_loot_dir_title">Указать путь к файлам Loot</h3>
+                <button class="modal-close" onclick="closeModal('modal-configure-loot-dir')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted" style="margin-bottom: 16px;" data-i18n="modal_configure_loot_dir_desc">
+                    Вы можете переопределить папку <strong>Loot</strong> (содержащую папки CooldownGroups, Items, Nodes, Spawners). 
+                    Все подпапки являются необязательными. Редактор будет читать и писать <strong>Override</strong> конфигурации из указанной папки, а <strong>Default</strong> системные файлы по-прежнему будут считываться из папки по умолчанию.
+                </p>
+                <div class="form-group">
+                    <label for="custom-loot-dir-input" class="form-label" data-i18n="absolute_path_loot_dir_label">Абсолютный путь к папке Loot:</label>
+                    <input type="text" id="custom-loot-dir-input" placeholder="например, C:\MyCustomServer\Loot" data-i18n-placeholder="placeholder_loot_dir">
+                    <span class="form-label-desc" data-i18n="blank_path_desc">Пустой путь сбрасывает настройки на папку по умолчанию.</span>
+                </div>
+            </div>
+            <div class="modal-footer" style="display: flex; justify-content: space-between;">
+                <button class="btn btn-danger btn-sm" onclick="resetLootDirToDefault()" data-i18n="btn_reset_default">Сбросить по умолчанию</button>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-secondary" onclick="closeModal('modal-configure-loot-dir')" data-i18n="btn_cancel">Отмена</button>
+                    <button class="btn btn-primary" onclick="submitConfigureLootDir()" data-i18n="btn_save">Сохранить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dynamic items list for auto-complete -->
+    <datalist id="items-datalist"></datalist>
+
+    <!-- MODAL 7: Help Info -->
+    <div id="modal-help-info" class="modal-overlay hidden">
+        <div class="modal-card modal-card-help">
+            <div class="modal-header">
+                <h3 id="modal-help-title">Справка</h3>
+                <button class="modal-close" onclick="closeModal('modal-help-info')">&times;</button>
+            </div>
+            <div class="modal-body modal-body-help" id="modal-help-body">
+                <!-- Content populated dynamically -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('modal-help-info')" data-i18n="btn_close">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js?v=2.4.0"></script>
+</body>
+</html>
